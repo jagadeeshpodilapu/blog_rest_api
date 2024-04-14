@@ -9,6 +9,8 @@ const connectMongodb = require('./init/mongodb');
 const { authRoute } = require("./routes");
 const { errorHandler } = require("./middlewares");
 
+const notfound=require("./controller/notfound");
+
 
 //init app
 const app = express();
@@ -26,7 +28,10 @@ app.use(morgan("dev"));
 app.use('/api/v1/auth', authRoute);
 
 //error handler middleware
- app.use(errorHandler);
-console.log(typeof errorHandler);
- 
+app.use(errorHandler);
+
+//not found route
+app.use("*",notfound)
+
+
 module.exports = app;
