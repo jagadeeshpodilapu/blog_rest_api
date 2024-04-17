@@ -10,8 +10,6 @@ const signupValidator = [
 ];
 
 const signInValidator = [
-
-
     check('email').isEmail().withMessage("Invalid email").notEmpty().withMessage("Email is required"),
     check("password").isLength({ min: 6 }).withMessage("Password should be 6 char").notEmpty().withMessage("Password is required")
 ];
@@ -20,4 +18,15 @@ const emailValidator = [
     check('email').isEmail().withMessage("Invalid email").notEmpty().withMessage("Email is required"),
 ];
 
-module.exports = { signupValidator, signInValidator, emailValidator };
+const verifyUserValidator = [
+    check('email').isEmail().withMessage("Invalid email").notEmpty().withMessage("Email is required"),
+    check('code').notEmpty().withMessage("code is not empty"),
+];
+
+const recoverPasswordValidator = [
+    check('email').isEmail().withMessage("Invalid email").notEmpty().withMessage("Email is required"),
+    check('code').notEmpty().withMessage("code is not empty"),
+    check("password").isLength({ min: 6 }).withMessage("Password should be 6 char").notEmpty().withMessage("Password is required")
+];
+
+module.exports = { signupValidator, signInValidator, emailValidator, verifyUserValidator, recoverPasswordValidator };

@@ -6,7 +6,7 @@ const comparePassword = require("../utils/comparePassword");
 const generateToken = require('../utils/generateToken');
 const generateCode = require('../utils/generateCode');
 
-const sendMail=require("../utils/send_email");
+const sendMail = require("../utils/send_email");
 
 const signup = async (req, res, next) => {
     try {
@@ -102,12 +102,12 @@ const verifyCode = async (req, res, next) => {
         await user.save();
 
         //send email verification code
-       await sendMail({
-        emailTo:user.email,
-        subject:"Email verification code",
-        code,content:"Verify your account"
+        await sendMail({
+            emailTo: user.email,
+            subject: "Email verification code",
+            code, content: "Verify your account"
 
-       });
+        });
 
 
         res.status(200).json({ code: 200, status: true, message: 'email sent successfully' });
@@ -118,5 +118,119 @@ const verifyCode = async (req, res, next) => {
         next(error);
 
     }
+};
+
+
+const verifyUser = async (req, res, next) => {
+    try {
+
+        const { email, code } = req.body;
+
+        const user = await Users.findOne({ email });
+
+        if (!user) {
+            res.code = 404;
+            throw new Error("User not found");
+        }
+
+        if (user.verificationCode !== code) {
+            res.code = 400;
+            throw new Error("Invalid code");
+        }
+
+        user.isVerified = true;
+        user.verificationCode = null;
+        await user.save();
+
+        res.status(200).json({
+            code: 200,
+            status: true,
+            message: "User verified code successfully"
+
+
+        })
+
+
+    } catch (error) {
+
+        next(error);
+
+    }
+};
+
+
+const forgotpasswordCode = async (req, res, next) => {
+    try {
+
+
+
+        const { email } = req.body;
+
+        const user = await Users.findOne({ email });
+
+        if (!user) {
+            res.code = 404;
+            throw new Error("User not found");
+        }
+
+        const code = generateCode(6);
+
+        user.forgotpasswordCode = code;
+
+        await user.save();
+
+        await sendMail({
+            emailTo: user.email,
+            subject: "Forgot Password  code",
+            code, content: "Change your password"
+
+        });
+
+        res.status(200).json({
+            code: 200,
+            status: true,
+            message: "Forgot password code sent successfully"
+        });
+
+
+
+
+
+    } catch (error) {
+        next(error);
+    }
 }
-module.exports = { signup, signin, verifyCode };
+
+const recoverPassword = async (req, res, next) => {
+
+    try {
+        const { email, code, password } = req.body;
+
+        const user = await Users.findOne({ email });
+
+        if (!user) {
+            res.code = 404;
+            throw new Error("User not found");
+        }
+
+        if (user.forgotpasswordCode !== code) {
+            res.code = 400;
+            throw new Error("Invalid code");
+        }
+        const hashedPassword=await hashPassword(password);
+        user.password = hashedPassword;
+        user.forgotpasswordCode = null;
+        await user.save();
+
+        res.status(200).json({
+         code:200,
+         status:true,
+         message:"User password updated successfully"
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+module.exports = { signup, signin, verifyCode, verifyUser, forgotpasswordCode, recoverPassword };
